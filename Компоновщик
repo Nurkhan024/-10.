@@ -1,0 +1,177 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public abstract class OrganizationComponent
+{
+    protected string name;
+
+    public OrganizationComponent(string name)
+    {
+        this.name = name;
+    }
+
+    public string GetName() => name;
+
+    public virtual void Display(int indent = 0) { }
+    public virtual decimal GetBudget() => 0;
+    public virtual int GetEmployeeCount() => 0;
+    public virtual void Add(OrganizationComponent component) { }
+    public virtual void Remove(OrganizationComponent component) { }
+}
+
+public class Employee : OrganizationComponent
+{
+    private string position;
+    private decimal salary;
+
+    public Employee(string name, string position, decimal salary) : base(name)
+    {
+        this.position = position;
+        this.salary = salary;
+    }
+
+    public override void Display(int indent = 0)
+    {
+        Console.WriteLine(new string(' ', indent) + $"{name} - {position}, Зарплата: {salary} тг");
+    }
+
+    public override decimal GetBudget()
+    {
+        return salary;
+    }
+}
+
+public class Department : OrganizationComponent
+{
+    private List<OrganizationComponent> components = new List<OrganizationComponent>();
+
+    public Department(string name) : base(name) { }
+
+    public override void Add(OrganizationComponent component)
+    {
+        components.Add(component);
+    }
+
+    public override void Remove(OrganizationComponent component)
+    {
+        components.Remove(component);
+    }
+
+    public override void Display(int indent = 0)
+    {
+        Console.WriteLine(new string(' ', indent) + $"Отдел: {name}");
+        foreach (var component in components)
+        {
+            component.Display(indent + 2);
+        }
+    }
+
+    public override decimal GetBudget()
+    {
+        decimal totalBudget = 0;
+        foreach (var component in components)
+        {
+            totalBudget += component.GetBudget();
+        }
+        return totalBudget;
+    }
+
+    public override int GetEmployeeCount()
+    {
+        int totalCount = 0;
+        foreach (var component in components)
+        {
+            totalCount += component.GetEmployeeCount();
+        }
+        return totalCount;
+    }
+
+    public Employee FindEmployeeByName(string name)
+    {
+        foreach (var component in components)
+        {
+            if (component is Employee employee && employee.GetName() == name)
+            {
+                return employee;
+            }
+            else if (component is Department department)
+            {
+                var found = department.FindEmployeeByName(name);
+                if (found != null)
+                {
+                    return found;
+                }
+            }
+        }
+        return null;
+    }
+
+    public void DisplayAllEmployees()
+    {
+        Console.WriteLine($"Сотрудники и подразделения отдела {name}:");
+        foreach (var component in components)
+        {
+            if (component is Employee employee)
+            {
+                Console.WriteLine($"Сотрудник: {employee.GetName()}");
+            }
+            else if (component is Department department)
+            {
+                department.DisplayAllEmployees();
+            }
+        }
+    }
+}
+
+public class Contractor : Employee
+{
+    public Contractor(string name, string position, decimal salary) : base(name, position, salary) { }
+
+    public override decimal GetBudget()
+    {
+        return 0;
+    }
+}
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        Employee emp1 = new Employee("Канат Бекбол", "Менеджер", 150000);
+        Employee emp2 = new Employee("Олжабаев Нурбек", "Разработчик", 120000);
+        Employee emp3 = new Employee("Алия Молдабаева", "Тестировщик", 100000);
+
+        Contractor contractor1 = new Contractor("Нуркен Мейрамбаев", "Временный разработчик", 80000);
+
+        Department dept1 = new Department("Отдел разработки");
+        Department dept2 = new Department("Отдел тестирования");
+        Department dept3 = new Department("Отдел маркетинга");
+
+        dept1.Add(emp1);
+        dept1.Add(emp2);
+        dept2.Add(emp3);
+        dept3.Add(contractor1);
+
+        Department rootDepartment = new Department("Главный офис");
+        rootDepartment.Add(dept1);
+        rootDepartment.Add(dept2);
+        rootDepartment.Add(dept3);
+
+        Console.WriteLine("Корпоративная структура:");
+        rootDepartment.Display();
+
+        Console.WriteLine($"\nБюджет отдела разработки: {dept1.GetBudget()} тг");
+
+        Console.WriteLine($"\nКоличество сотрудников в отделе маркетинга: {dept3.GetEmployeeCount()}");
+
+        string searchName = "Мария Петрова";
+        Employee foundEmployee = rootDepartment.FindEmployeeByName(searchName);
+        if (foundEmployee != null)
+        {
+            Console.WriteLine($"\nНайден сотрудник: {foundEmployee.GetName()}, {foundEmployee.GetBudget()} тг");
+        }
+
+        dept1.DisplayAllEmployees();
+    }
+}
