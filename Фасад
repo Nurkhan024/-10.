@@ -1,0 +1,121 @@
+using System;
+public class RoomBookingSystem
+{
+    public void BookRoom(string roomType)
+    {
+        Console.WriteLine($"Бронирование номера типа {roomType} выполнено.");
+    }
+
+    public void CancelBooking()
+    {
+        Console.WriteLine("Бронирование номера отменено.");
+    }
+}
+
+public class RestaurantSystem
+{
+    public void ReserveTable(int numberOfPeople)
+    {
+        Console.WriteLine($"Забронирован стол для {numberOfPeople} человек.");
+    }
+
+    public void OrderFood(string food)
+    {
+        Console.WriteLine($"Заказано блюдо: {food}.");
+    }
+}
+
+public class EventManagementSystem
+{
+    public void OrganizeEvent(string eventType)
+    {
+        Console.WriteLine($"Организация мероприятия типа: {eventType}.");
+    }
+
+    public void ReserveConferenceRoom()
+    {
+        Console.WriteLine("Забронирован конференц-зал.");
+    }
+
+    public void BookEquipment(string equipment)
+    {
+        Console.WriteLine($"Забронировано оборудование: {equipment}.");
+    }
+}
+
+public class CleaningService
+{
+    public void ScheduleCleaning()
+    {
+        Console.WriteLine("Уборка номера запланирована.");
+    }
+
+    public void PerformCleaning()
+    {
+        Console.WriteLine("Уборка номера выполнена.");
+    }
+}
+
+public class HotelFacade
+{
+    private RoomBookingSystem roomBooking;
+    private RestaurantSystem restaurant;
+    private EventManagementSystem eventManagement;
+    private CleaningService cleaningService;
+
+    public HotelFacade()
+    {
+        roomBooking = new RoomBookingSystem();
+        restaurant = new RestaurantSystem();
+        eventManagement = new EventManagementSystem();
+        cleaningService = new CleaningService();
+    }
+    public void BookRoomWithServices(string roomType, int numberOfPeople, string food)
+    {
+        roomBooking.BookRoom(roomType);
+        restaurant.ReserveTable(numberOfPeople);
+        restaurant.OrderFood(food);
+        cleaningService.ScheduleCleaning();
+    }
+    public void OrganizeEventWithRooms(string eventType, string equipment)
+    {
+        eventManagement.OrganizeEvent(eventType);
+        eventManagement.ReserveConferenceRoom();
+        eventManagement.BookEquipment(equipment);
+        roomBooking.BookRoom("Standard");
+    }
+
+    public void BookTableWithTaxi(int numberOfPeople, string food)
+    {
+        restaurant.ReserveTable(numberOfPeople);
+        restaurant.OrderFood(food);
+        Console.WriteLine("Вызвано такси.");
+    }
+    public void CancelRoomBooking()
+    {
+        roomBooking.CancelBooking();
+        cleaningService.PerformCleaning();
+    }
+}
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        HotelFacade hotelFacade = new HotelFacade();
+
+        hotelFacade.BookRoomWithServices("Люкс", 2, "Креветки");
+
+        Console.WriteLine();
+
+        hotelFacade.OrganizeEventWithRooms("Конференция", "Проектор");
+
+        Console.WriteLine();
+
+        hotelFacade.BookTableWithTaxi(5, "Суши");
+
+        Console.WriteLine();
+
+        hotelFacade.CancelRoomBooking();
+    }
+}
